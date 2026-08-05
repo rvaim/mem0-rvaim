@@ -1,15 +1,19 @@
 {
-  "$schema": "https://json.schemastore.org/claude-marketplace.json",
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
   "name": "mem0-rvaim",
+  "version": "0.3.0",
   "description": "Local-first persistent memory plugin for Claude Code / Codex: self-hosted Mem0 daemon, Qdrant Local, workspace isolation. No cloud account required.",
+  "owner": {
+    "name": "rvaim",
+    "email": "support@mem0-rvaim.dev"
+  },
   "plugins": [
     {
       "name": "mem0-rvaim",
-      "source": "github",
-      "owner": "rvaim",
-      "repo": "mem0-rvaim",
-      "path": "",
-      "version": "0.3.0"
+      "description": "Local-first persistent memory plugin: self-hosted Mem0 daemon, Qdrant Local, workspace isolation.",
+      "version": "0.3.0",
+      "source": "./",
+      "category": "productivity"
     }
   ]
 }
