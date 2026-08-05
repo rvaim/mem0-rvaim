@@ -1,0 +1,5 @@
+# mem0-rvaim pinned dependencies (local memory daemon)
+# Installed into a persistent venv by ensure_deps.sh.
+mem0ai>=2.0.16
+qdrant-client>=1.12.0
+pydantic>=2.7.3

@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "mem0": {
+      "type": "stdio",
+      "command": "bash",
+      "args": ["${extensionPath}/scripts/mcp_entry.sh"],
+      "env": {}
+    }
+  }
+}

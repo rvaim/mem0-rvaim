@@ -1,0 +1,12 @@
+{
+  "name": "mem0-rvaim",
+  "version": "0.3.0",
+  "description": "Local persistent memory for Codex. Self-hosted Mem0 daemon with Qdrant Local + SQLite; workspace-scoped and global memories, no cloud account, no API key.",
+  "author": {
+    "name": "mem0-rvaim contributors"
+  },
+  "license": "Apache-2.0",
+  "keywords": ["memory", "local-first", "mcp", "semantic-search", "workspace-isolation"],
+  "userConfig": {},
+  "contextFileName": "AGENTS.md"
+}
