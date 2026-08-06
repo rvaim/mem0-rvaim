@@ -3,7 +3,8 @@
     "mem0": {
       "type": "stdio",
       "command": "bash",
-      "args": ["${extensionPath}/scripts/mcp_entry.sh"]
+      "args": ["${CLAUDE_PLUGIN_ROOT}/scripts/mcp_entry.sh"],
+      "cwd": "."
     }
   }
 }

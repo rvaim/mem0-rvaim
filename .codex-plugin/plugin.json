@@ -5,8 +5,23 @@
   "author": {
     "name": "mem0-rvaim contributors"
   },
+  "homepage": "https://github.com/rvaim/mem0-rvaim",
+  "repository": "https://github.com/rvaim/mem0-rvaim",
   "license": "Apache-2.0",
   "keywords": ["memory", "local-first", "mcp", "semantic-search", "workspace-isolation"],
+  "skills": "./skills/",
+  "mcpServers": "./.codex-mcp.json",
   "userConfig": {},
-  "contextFileName": "AGENTS.md"
+  "contextFileName": "AGENTS.md",
+  "interface": {
+    "displayName": "mem0-rvaim",
+    "shortDescription": "Local-first persistent memory for Codex",
+    "longDescription": "Self-hosted Mem0 daemon with Qdrant Local + SQLite. Workspace-scoped and global memories, no cloud account, no API key. Codex and Claude Code share the same memory store when opened on the same folder.",
+    "developerName": "rvaim",
+    "category": "Productivity",
+    "capabilities": ["Interactive", "Read", "Write"],
+    "websiteURL": "https://github.com/rvaim/mem0-rvaim",
+    "brandColor": "#5B8DEF",
+    "defaultPrompt": ["检查 mem0-rvaim 的配置、运行状态和最近记忆。"]
+  }
 }
