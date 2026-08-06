@@ -22,7 +22,7 @@ import os
 from pathlib import Path
 from typing import Any, Dict
 
-SERVICE_VERSION = "0.3.1"
+SERVICE_VERSION = "0.3.2"
 
 DEFAULT_ROOT = os.path.join(os.path.expanduser("~"), ".mem0", "local")
 

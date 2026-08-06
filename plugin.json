@@ -1,7 +1,7 @@
 {
   "id": "mem0-rvaim",
   "name": "mem0-rvaim",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Local-first persistent memory plugin: self-hosted Mem0 daemon, Qdrant Local, workspace isolation. No cloud account required.",
   "author": { "name": "mem0-rvaim contributors" },
   "publisher": "mem0-rvaim",
