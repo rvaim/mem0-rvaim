@@ -633,6 +633,15 @@ def run_server(data_dir: Path, port: int = 0, cfg: Optional[Dict[str, Any]] = No
     app: DaemonApp = server.app  # type: ignore[attr-defined]
     token: str = server.daemon_token  # type: ignore[attr-defined]
 
+    # Another daemon already owns the Qdrant folder (it beat us to the
+    # lock during a spawn race).  Serving alongside it would degrade both
+    # and overwrite the runtime files — exit quietly instead.
+    err = getattr(app.engine, "init_error", None)
+    if err is not None and "already accessed by another instance" in str(err):
+        log.warning("another daemon owns %s; exiting (pid=%d)", data_dir, os.getpid())
+        app.shutdown()
+        return
+
     # persist runtime files under the *config root* runtime/ dir so
     # bootstrap (which reads root/runtime/daemon.port) finds them
     runtime = app_config.root_dir() / "runtime"

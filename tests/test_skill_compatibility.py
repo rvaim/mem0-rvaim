@@ -26,7 +26,8 @@ def test_all_required_skills_present():
 
 
 def test_hooks_wired():
-    hooks = json.loads((ROOT / "hooks.json").read_text(encoding="utf-8"))
+    # Claude Code only loads plugin hooks from <plugin_root>/hooks/hooks.json
+    hooks = json.loads((ROOT / "hooks" / "hooks.json").read_text(encoding="utf-8"))
     events = hooks["hooks"]
     assert "SessionStart" in events
     assert "UserPromptSubmit" in events
@@ -37,8 +38,13 @@ def test_hooks_wired():
         for handler in handlers:
             for h in handler.get("hooks", []):
                 commands.append(h.get("command", ""))
+                commands.append(h.get("commandWindows", ""))
     joined = " ".join(commands)
     assert "on_session_start.sh" in joined
+    # Windows hooks run under pythonw (no console window); macOS/Linux
+    # use the bash scripts
+    assert "hook_runner.py" in joined
+    assert "commandWindows" in json.dumps(hooks, ensure_ascii=False)
     assert "on_user_prompt.sh" in joined
     assert "on_stop.sh" in joined
     assert "on_pre_compact.sh" in joined

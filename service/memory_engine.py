@@ -26,12 +26,17 @@ class MemoryEngine:
         # all writes so concurrent HTTP requests / retry worker never race
         self._write_lock = threading.Lock()
         self.memory = None
+        self.init_error: Optional[Exception] = None
         try:
             self.memory = create_memory(self.data_dir, self.cfg)
             log.info("memory engine ready (qdrant=%s)", self.data_dir / "qdrant")
         except Exception as exc:
             # daemon must still start without provider credentials; every
-            # operation degrades to empty results until config is fixed
+            # operation degrades to empty results until config is fixed.
+            # A Qdrant "already accessed" error means ANOTHER daemon owns
+            # the data dir — the caller is expected to exit instead of
+            # serving degraded alongside it.
+            self.init_error = exc
             log.error("memory engine unavailable: %s (configure llm/embedder)", exc)
 
     # ------------------------------------------------------------------

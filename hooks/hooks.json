@@ -9,13 +9,15 @@
             "name": "mem0-ensure-deps",
             "type": "command",
             "command": "bash \"${CLAUDE_PLUGIN_ROOT}/scripts/ensure_deps.sh\"",
+            "commandWindows": "pythonw \"${CLAUDE_PLUGIN_ROOT}\\scripts\\hook_runner.py\" --hook ensure-deps",
             "timeout": 120
           },
           {
             "name": "mem0-session-start",
             "type": "command",
             "command": "bash \"${CLAUDE_PLUGIN_ROOT}/scripts/on_session_start.sh\"",
-            "timeout": 20
+            "commandWindows": "pythonw \"${CLAUDE_PLUGIN_ROOT}\\scripts\\hook_runner.py\" --hook session-start",
+            "timeout": 120
           }
         ]
       }
@@ -27,6 +29,7 @@
             "name": "mem0-user-prompt",
             "type": "command",
             "command": "bash \"${CLAUDE_PLUGIN_ROOT}/scripts/on_user_prompt.sh\"",
+            "commandWindows": "pythonw \"${CLAUDE_PLUGIN_ROOT}\\scripts\\hook_runner.py\" --hook user-prompt",
             "timeout": 8
           }
         ]
@@ -39,7 +42,8 @@
           {
             "name": "mem0-block-memory-write",
             "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/scripts/block_memory_write.sh\""
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/scripts/block_memory_write.sh\"",
+            "commandWindows": "pythonw \"${CLAUDE_PLUGIN_ROOT}\\scripts\\hook_runner.py\" --hook block-write"
           }
         ]
       }
@@ -51,7 +55,8 @@
             "name": "mem0-pre-compact",
             "type": "command",
             "command": "bash \"${CLAUDE_PLUGIN_ROOT}/scripts/on_pre_compact.sh\"",
-            "timeout": 60
+            "commandWindows": "pythonw \"${CLAUDE_PLUGIN_ROOT}\\scripts\\hook_runner.py\" --hook pre-compact",
+            "timeout": 120
           }
         ]
       }
@@ -63,7 +68,8 @@
             "name": "mem0-session-summary",
             "type": "command",
             "command": "bash \"${CLAUDE_PLUGIN_ROOT}/scripts/on_stop.sh\"",
-            "timeout": 60
+            "commandWindows": "pythonw \"${CLAUDE_PLUGIN_ROOT}\\scripts\\hook_runner.py\" --hook stop",
+            "timeout": 120
           }
         ]
       }

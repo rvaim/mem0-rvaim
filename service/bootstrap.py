@@ -79,19 +79,57 @@ def _pid_alive(pid: int) -> bool:
         return False
 
 
-def _acquire_lock() -> bool:
-    """Try to create the lock dir; True if we hold it."""
+def _acquire_lock() -> Optional[object]:
+    """Take an OS-level exclusive lock on runtime/daemon.lock.
+
+    msvcrt (Windows) / fcntl (POSIX) file locks are released by the OS
+    when the holding process exits — no stale-lock recovery is needed and
+    there is no mkdir/create race, so exactly one process can ever hold
+    it.  Returns the open handle (must be passed to _release_lock) or
+    None when the lock is held elsewhere.
+    """
     lock = lock_dir()
     try:
-        lock.mkdir(parents=True, exist_ok=True)
-        return True
+        lock.parent.mkdir(parents=True, exist_ok=True)
+        fh = open(lock, "a+b")
     except OSError:
-        return False
-
-
-def _release_lock() -> None:
+        return None
     try:
-        lock_dir().rmdir()
+        if fh.tell() == 0:
+            fh.write(b"\0")
+            fh.flush()
+        if os.name == "nt":
+            import msvcrt
+
+            fh.seek(0)
+            msvcrt.locking(fh.fileno(), msvcrt.LK_NBLCK, 1)
+        else:
+            import fcntl
+
+            fcntl.flock(fh.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        return fh
+    except OSError:
+        fh.close()
+        return None
+
+
+def _release_lock(lock: Optional[object]) -> None:
+    if lock is None:
+        return
+    try:
+        if os.name == "nt":
+            import msvcrt
+
+            lock.seek(0)
+            msvcrt.locking(lock.fileno(), msvcrt.LK_UNLCK, 1)
+        else:
+            import fcntl
+
+            fcntl.flock(lock.fileno(), fcntl.LOCK_UN)
+    except OSError:
+        pass
+    try:
+        lock.close()
     except OSError:
         pass
 
@@ -151,6 +189,13 @@ def _spawn_daemon(data_dir: Path) -> subprocess.Popen:
     of the invoking cwd.
     """
     python = sys.executable
+    if os.name == "nt":
+        # pythonw.exe is a GUI-subsystem binary: no console window ever
+        # appears when the daemon is spawned from a windowless parent
+        # (hooks run under pythonw, Claude Code itself may be windowless).
+        alt = os.path.join(os.path.dirname(python), "pythonw.exe")
+        if os.path.isfile(alt):
+            python = alt
     plugin_root = Path(__file__).resolve().parent.parent
     cmd = [python, "-m", "service.daemon", "--data-dir", str(data_dir)]
     env = dict(os.environ)
@@ -197,7 +242,20 @@ def ensure_daemon(
         # alive but not responding: stale token file (daemon regenerates on start)
         log.warning("daemon pid %d alive but unhealthy; restarting", pid)
 
-    _acquire_lock()
+    lock = _acquire_lock()
+    if lock is None:
+        # Another process holds the spawn lock.  Wait for the daemon it is
+        # starting to become healthy for as long as we would have waited
+        # ourselves (a cold start imports mem0/qdrant and can take 20-30s;
+        # a shorter fixed wait here made waiting callers give up and spawn
+        # a second instance after the lock was released).
+        deadline = time.time() + timeout
+        while time.time() < deadline:
+            if is_healthy(token, timeout=2.0):
+                return {"ok": True, "started": False, "port": _read_port()}
+            time.sleep(1.0)
+        return {"ok": False, "started": False, "error": "daemon-lock-busy"}
+
     try:
         # double check under lock
         if is_healthy(token, timeout=2.0):
@@ -236,7 +294,7 @@ def ensure_daemon(
         log.error("daemon failed to start twice")
         return {"ok": False, "started": False, "error": "daemon-start-failed"}
     finally:
-        _release_lock()
+        _release_lock(lock)
 
 
 def stop_daemon() -> bool:

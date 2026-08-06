@@ -25,7 +25,6 @@ from pathlib import Path
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 
 from service import bootstrap, config as app_config, security  # noqa: E402
-from service.client import ensure_daemon  # noqa: E402
 
 REDACTED = "[REDACTED]"
 
@@ -53,7 +52,7 @@ def cmd_status() -> int:
 
 
 def cmd_start() -> int:
-    result = ensure_daemon()
+    result = bootstrap.ensure_daemon()
     print(f"daemon started: {result.get('ok')} (port={result.get('port')}, started={result.get('started', False)})")
     return 0 if result.get("ok") else 1
 
