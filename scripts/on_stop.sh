@@ -19,8 +19,12 @@ if [ -n "$AGENT_ID" ]; then
   exit 0  # subagent session
 fi
 
-CWD=$(printf '%s' "$INPUT" | _mem0_jq '.cwd' "$PWD")
+CWD=$(printf '%s' "$INPUT" | _mem0_jq '.cwd' "")
+if [ -z "$CWD" ]; then
+  CWD="${CLAUDE_PROJECT_DIR:-$PWD}"
+fi
 export MEM0_HOOK_CWD="$CWD"
+export MEM0_CWD="$CWD"
 
 . "$SCRIPT_DIR/_identity.sh" 2>/dev/null || true
 PLUGIN_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
@@ -40,18 +44,20 @@ if [ -z "$SESSION_ID" ]; then
   [ -f "$_SID_FILE" ] && SESSION_ID=$(cat "$_SID_FILE" 2>/dev/null) || true
 fi
 
-# Background capture via the daemon (never blocks the turn end)
+# Background capture via the daemon (never blocks the turn end).
+# Paths go through env vars — never interpolated into python source.
 (
   PY_BIN="$(_mem0_python 2>/dev/null)"
   [ -n "$PY_BIN" ] || PY_BIN="python"
-  MEM0_CWD="$CWD" MEM0_SESSION_ID="$SESSION_ID" PYTHONPATH="$PLUGIN_ROOT" \
+  MEM0_SESSION_ID="$SESSION_ID" MEM0_CWD="$CWD" MEM0_TRANSCRIPT_PATH="$TRANSCRIPT_PATH" \
+  MEM0_PLUGIN_ROOT="$PLUGIN_ROOT" \
     "$PY_BIN" -c "
 import os, sys
-sys.path.insert(0, '$PLUGIN_ROOT')
+sys.path.insert(0, os.environ.get('MEM0_PLUGIN_ROOT', ''))
 from service.client import capture
 capture(
     session_id=os.environ.get('MEM0_SESSION_ID', ''),
-    transcript_path='$TRANSCRIPT_PATH',
+    transcript_path=os.environ.get('MEM0_TRANSCRIPT_PATH', ''),
     cwd=os.environ.get('MEM0_CWD', ''),
     source='stop',
     capture_summary=True,

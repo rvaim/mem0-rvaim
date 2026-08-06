@@ -1,4 +1,5 @@
 {
+  "description": "mem0-rvaim local memory hooks (SessionStart / UserPromptSubmit / PreToolUse / PreCompact / Stop)",
   "hooks": {
     "SessionStart": [
       {
@@ -7,13 +8,13 @@
           {
             "name": "mem0-ensure-deps",
             "type": "command",
-            "command": "ANTIGRAVITY_PLUGIN_ROOT=${extensionPath} CLAUDE_PLUGIN_ROOT=${extensionPath} bash ${extensionPath}/scripts/ensure_deps.sh 2>/dev/null || true",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/scripts/ensure_deps.sh\"",
             "timeout": 120
           },
           {
             "name": "mem0-session-start",
             "type": "command",
-            "command": "ANTIGRAVITY_PLUGIN_ROOT=${extensionPath} CLAUDE_PLUGIN_ROOT=${extensionPath} bash ${extensionPath}/scripts/on_session_start.sh 2>/dev/null || true",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/scripts/on_session_start.sh\"",
             "timeout": 20
           }
         ]
@@ -25,7 +26,7 @@
           {
             "name": "mem0-user-prompt",
             "type": "command",
-            "command": "ANTIGRAVITY_PLUGIN_ROOT=${extensionPath} CLAUDE_PLUGIN_ROOT=${extensionPath} bash ${extensionPath}/scripts/on_user_prompt.sh 2>/dev/null || true",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/scripts/on_user_prompt.sh\"",
             "timeout": 8
           }
         ]
@@ -38,7 +39,7 @@
           {
             "name": "mem0-block-memory-write",
             "type": "command",
-            "command": "ANTIGRAVITY_PLUGIN_ROOT=${extensionPath} CLAUDE_PLUGIN_ROOT=${extensionPath} bash ${extensionPath}/scripts/block_memory_write.sh"
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/scripts/block_memory_write.sh\""
           }
         ]
       }
@@ -49,7 +50,7 @@
           {
             "name": "mem0-pre-compact",
             "type": "command",
-            "command": "ANTIGRAVITY_PLUGIN_ROOT=${extensionPath} CLAUDE_PLUGIN_ROOT=${extensionPath} bash ${extensionPath}/scripts/on_pre_compact.sh 2>/dev/null || true",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/scripts/on_pre_compact.sh\"",
             "timeout": 60
           }
         ]
@@ -61,7 +62,7 @@
           {
             "name": "mem0-session-summary",
             "type": "command",
-            "command": "ANTIGRAVITY_PLUGIN_ROOT=${extensionPath} CLAUDE_PLUGIN_ROOT=${extensionPath} bash ${extensionPath}/scripts/on_stop.sh 2>/dev/null || true",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/scripts/on_stop.sh\"",
             "timeout": 60
           }
         ]

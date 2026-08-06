@@ -17,7 +17,12 @@ PLUGIN_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 INPUT=$(cat)
 SOURCE=$(printf '%s' "$INPUT" | _mem0_jq '.source' "startup")
 
-MEM0_CWD_RESOLVED=$(printf '%s' "$INPUT" | _mem0_jq '.cwd' "$PWD")
+MEM0_CWD_RESOLVED=$(printf '%s' "$INPUT" | _mem0_jq '.cwd' "")
+if [ -z "$MEM0_CWD_RESOLVED" ]; then
+  # SessionStart payload has no cwd; fall back to the project dir Claude
+  # Code exports on the hook process, then the hook's own working dir.
+  MEM0_CWD_RESOLVED="${CLAUDE_PROJECT_DIR:-$PWD}"
+fi
 export MEM0_CWD="$MEM0_CWD_RESOLVED"
 export MEM0_HOOK_CWD="$MEM0_CWD_RESOLVED"
 
@@ -42,15 +47,19 @@ _UID="${MEM0_RESOLVED_USER_ID:-${USER:-default}}"
 _PID="${MEM0_PROJECT_ID:-unknown}"
 _BR="${MEM0_BRANCH:-unknown}"
 
+# Paths are passed via env vars, never interpolated into python source:
+# Windows paths contain backslashes (\U, \n, ...) which are python escape
+# sequences and would raise SyntaxError.
+MEM0_PLUGIN_ROOT="$PLUGIN_ROOT" MEM0_PROJECT_ID="$_PID" \
 "$(_mem0_python)" -c "
 import json, os, sys
-sys.path.insert(0, '$PLUGIN_ROOT')
+sys.path.insert(0, os.environ.get('MEM0_PLUGIN_ROOT', ''))
 from service.client import register_session
 try:
     result = register_session(
-        session_id='$MEM0_SESSION_ID',
-        cwd='$MEM0_CWD_RESOLVED',
-        workspace_id='$_PID',
+        session_id=os.environ.get('MEM0_SESSION_ID', ''),
+        cwd=os.environ.get('MEM0_HOOK_CWD', ''),
+        workspace_id=os.environ.get('MEM0_PROJECT_ID', ''),
         host='claude',
     )
     print(json.dumps(result or {}))

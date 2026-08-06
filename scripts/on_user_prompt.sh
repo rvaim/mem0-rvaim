@@ -22,7 +22,10 @@ if [ ${#PROMPT} -lt 20 ]; then
   exit 0
 fi
 
-CWD=$(printf '%s' "$INPUT" | _mem0_jq '.cwd' "$PWD")
+CWD=$(printf '%s' "$INPUT" | _mem0_jq '.cwd' "")
+if [ -z "$CWD" ]; then
+  CWD="${CLAUDE_PROJECT_DIR:-$PWD}"
+fi
 export MEM0_CWD="$CWD"
 export MEM0_HOOK_CWD="$CWD"
 
@@ -47,9 +50,9 @@ PY_BIN="$(_mem0_python 2>/dev/null)"
 [ -n "$PY_BIN" ] || PY_BIN="python"
 
 RESULT=$(printf '%s' "$PROMPT" | MEM0_CWD="$CWD" MEM0_SESSION_ID="$SESSION_ID" \
-  PYTHONPATH="$PLUGIN_ROOT" "$PY_BIN" -c "
+  MEM0_PLUGIN_ROOT="$PLUGIN_ROOT" "$PY_BIN" -c "
 import json, os, sys
-sys.path.insert(0, '$PLUGIN_ROOT')
+sys.path.insert(0, os.environ.get('MEM0_PLUGIN_ROOT', ''))
 sys.stdin.reconfigure(encoding='utf-8', errors='replace')
 sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 from service.client import recall

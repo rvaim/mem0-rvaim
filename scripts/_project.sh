@@ -10,11 +10,12 @@ _MEM0_RESOLVE_CWD="${MEM0_HOOK_CWD:-$PWD}"
 
 _MEM0_PY_BIN="$(_mem0_python 2>/dev/null)"
 if [ -n "$_MEM0_PY_BIN" ]; then
-  _MEM0_PROJECT_JSON=$(PYTHONPATH="$_SCRIPT_DIR" "$_MEM0_PY_BIN" -c "
-import json, sys
-sys.path.insert(0, '$_SCRIPT_DIR')
+  # cwd is passed via env var — never interpolated into python source
+  # (Windows backslash paths would break string literals).
+  _MEM0_PROJECT_JSON=$(MEM0_RESOLVE_CWD="$_MEM0_RESOLVE_CWD" PYTHONPATH="$_SCRIPT_DIR" "$_MEM0_PY_BIN" -c "
+import json, os
 from _project import resolve_workspace_id, resolve_branch
-cwd = '$_MEM0_RESOLVE_CWD'
+cwd = os.environ.get('MEM0_RESOLVE_CWD') or ''
 print(json.dumps({'workspace_id': resolve_workspace_id(cwd), 'branch': resolve_branch(cwd)}))
 " 2>/dev/null || echo '{"workspace_id":"unknown","branch":"unknown"}')
   MEM0_PROJECT_ID=$(printf '%s' "$_MEM0_PROJECT_JSON" | "$_MEM0_PY_BIN" -c "import sys,json; print(json.load(sys.stdin).get('workspace_id','unknown'))" 2>/dev/null || echo "unknown")
