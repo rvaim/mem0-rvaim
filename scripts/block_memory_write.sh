@@ -18,8 +18,10 @@ if [ -n "${MEM0_DEBUG:-}" ]; then
 fi
 
 INPUT=$(cat)
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+. "$SCRIPT_DIR/_py.sh" 2>/dev/null || true
 
-FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // .tool_input.path // ""' 2>/dev/null || echo "")
+FILE_PATH=$(printf '%s' "$INPUT" | _mem0_jq '.tool_input.file_path // .tool_input.path' "")
 
 if [ -z "$FILE_PATH" ]; then
   exit 0

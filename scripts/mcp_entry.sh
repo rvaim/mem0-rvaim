@@ -18,6 +18,6 @@ if [ -z "$VENV_PY" ]; then
   [ -z "$VENV_PY" ] && [ -x "${DATA_DIR}/venv/Scripts/python.exe" ] && VENV_PY="${DATA_DIR}/venv/Scripts/python.exe"
 fi
 
-PY_BIN="${VENV_PY:-python3}"
+PY_BIN="${VENV_PY:-python}"
 export PYTHONPATH="${PLUGIN_ROOT}${PYTHONPATH:+:$PYTHONPATH}"
 exec "${PY_BIN}" "${SCRIPT_DIR}/../service/mcp_proxy.py"

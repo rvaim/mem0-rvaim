@@ -11,8 +11,10 @@
 set -uo pipefail
 
 INPUT=$(cat)
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+. "$SCRIPT_DIR/_py.sh" 2>/dev/null || true
 
-TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // ""' 2>/dev/null || echo "")
+TOOL_NAME=$(printf '%s' "$INPUT" | _mem0_jq '.tool_name' "")
 
 case "$TOOL_NAME" in
   mcp__mem0__*|mcp__plugin_mem0_mem0__*|mcp__mem0-rvaim__*)

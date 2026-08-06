@@ -11,13 +11,19 @@ if [ -n "${MEM0_DEBUG:-}" ]; then
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-. "$SCRIPT_DIR/_identity.sh" 2>/dev/null || true
+. "$SCRIPT_DIR/_py.sh" 2>/dev/null || true
 PLUGIN_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 INPUT=$(cat)
-SOURCE=$(echo "$INPUT" | jq -r '.source // "startup"' 2>/dev/null || echo "startup")
+SOURCE=$(printf '%s' "$INPUT" | _mem0_jq '.source' "startup")
 
-MEM0_SESSION_ID=$(echo "$INPUT" | jq -r '.session_id // ""' 2>/dev/null || echo "")
+MEM0_CWD_RESOLVED=$(printf '%s' "$INPUT" | _mem0_jq '.cwd' "$PWD")
+export MEM0_CWD="$MEM0_CWD_RESOLVED"
+export MEM0_HOOK_CWD="$MEM0_CWD_RESOLVED"
+
+. "$SCRIPT_DIR/_identity.sh" 2>/dev/null || true
+
+MEM0_SESSION_ID=$(printf '%s' "$INPUT" | _mem0_jq '.session_id' "")
 if [ -z "$MEM0_SESSION_ID" ]; then
   MEM0_SESSION_ID="ses_$(date +%s)_$$"
 fi
@@ -31,15 +37,12 @@ if [ -n "${CLAUDE_ENV_FILE:-}" ]; then
   echo "export MEM0_WORKSPACE_ID=\"${MEM0_PROJECT_ID:-unknown}\"" >> "$CLAUDE_ENV_FILE" 2>/dev/null || true
 fi
 
-MEM0_CWD_RESOLVED=$(echo "$INPUT" | jq -r '.cwd // "."' 2>/dev/null || echo ".")
-export MEM0_CWD="$MEM0_CWD_RESOLVED"
-
 # Register the session (idempotent). Background-safe: fast path when healthy.
 _UID="${MEM0_RESOLVED_USER_ID:-${USER:-default}}"
 _PID="${MEM0_PROJECT_ID:-unknown}"
 _BR="${MEM0_BRANCH:-unknown}"
 
-python3 -c "
+"$(_mem0_python)" -c "
 import json, os, sys
 sys.path.insert(0, '$PLUGIN_ROOT')
 from service.client import register_session

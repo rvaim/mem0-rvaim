@@ -50,7 +50,9 @@ if [ "${needs_install}" = "true" ]; then
   if mkdir "${LOCKDIR}" 2>/dev/null; then
     # We acquired the lock — proceed with installation
     trap 'rmdir "${LOCKDIR}" 2>/dev/null || true' EXIT
-    python3 -m venv "${VENV_DIR}" 2>/dev/null || python -m venv "${VENV_DIR}" || true
+    # `python3` alone may be a Microsoft Store stub on Windows — prefer
+    # plain `python`, which is a real CPython install on Windows.
+    python -m venv "${VENV_DIR}" 2>/dev/null || python3 -m venv "${VENV_DIR}" || true
     VENV_PIP="$(find_venv_pip)"
     if [ -n "$VENV_PIP" ]; then
       "${VENV_PIP}" install --quiet --upgrade pip >/dev/null 2>&1 || true
@@ -83,7 +85,7 @@ fi
 
 # Start the daemon (idempotent). Prefer the venv python when present.
 VENV_PY="$(find_venv_python)"
-PY_BIN="${VENV_PY:-python3}"
+PY_BIN="${VENV_PY:-python}"
 MEM0_LOCAL_ROOT="${DATA_DIR}" MEM0_CWD="${PWD}" \
   PYTHONPATH="${PLUGIN_ROOT}" "${PY_BIN}" -c "
 import sys

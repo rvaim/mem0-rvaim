@@ -10,38 +10,38 @@ if [ -n "${MEM0_DEBUG:-}" ]; then
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-. "$SCRIPT_DIR/_identity.sh" 2>/dev/null || true
+. "$SCRIPT_DIR/_py.sh" 2>/dev/null || true
 PLUGIN_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 INPUT=$(cat)
 
-AGENT_ID=$(echo "$INPUT" | jq -r '.agent_id // ""' 2>/dev/null || echo "")
+AGENT_ID=$(printf '%s' "$INPUT" | _mem0_jq '.agent_id' "")
 if [ -n "$AGENT_ID" ]; then
   exit 0
 fi
 
-TRANSCRIPT_PATH=$(echo "$INPUT" | jq -r '.transcript_path // ""' 2>/dev/null || echo "")
+CWD=$(printf '%s' "$INPUT" | _mem0_jq '.cwd' "$PWD")
+export MEM0_HOOK_CWD="$CWD"
+
+. "$SCRIPT_DIR/_identity.sh" 2>/dev/null || true
+
+TRANSCRIPT_PATH=$(printf '%s' "$INPUT" | _mem0_jq '.transcript_path' "")
 if [ -z "$TRANSCRIPT_PATH" ]; then
   exit 0
 fi
 
-SESSION_ID=$(echo "$INPUT" | jq -r '.session_id // ""' 2>/dev/null || echo "")
+SESSION_ID=$(printf '%s' "$INPUT" | _mem0_jq '.session_id' "")
 if [ -z "$SESSION_ID" ]; then
   _SID_FILE="/tmp/mem0_session_id_${USER:-default}"
   [ -f "$_SID_FILE" ] && SESSION_ID=$(cat "$_SID_FILE" 2>/dev/null) || true
 fi
-CWD=$(echo "$INPUT" | jq -r '.cwd // "'"$PWD"'"' 2>/dev/null || echo "$PWD")
 
 _TMP="/tmp/mem0_precompact_input_$$.json"
 printf '%s' "$INPUT" > "$_TMP" 2>/dev/null
 
 (
-  VENV_PY="${CLAUDE_PLUGIN_DATA:-$HOME/.mem0/local}/venv/bin/python3"
-  [ -x "$VENV_PY" ] || VENV_PY="${CLAUDE_PLUGIN_DATA:-$HOME/.mem0/local}/venv/Scripts/python.exe"
-  PY_BIN="python3"
-  if [ -n "${VENV_PY:-}" ] && [ -x "${VENV_PY:-/nonexistent}" ]; then
-    PY_BIN="$VENV_PY"
-  fi
+  PY_BIN="$(_mem0_python 2>/dev/null)"
+  [ -n "$PY_BIN" ] || PY_BIN="python"
   MEM0_CWD="$CWD" MEM0_SESSION_ID="$SESSION_ID" PYTHONPATH="$PLUGIN_ROOT" \
     "$PY_BIN" -c "
 import os, sys
