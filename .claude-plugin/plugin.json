@@ -1,12 +1,12 @@
 {
   "name": "mem0-rvaim",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Local persistent memory for Claude Code. Self-hosted Mem0 daemon with Qdrant Local + SQLite; workspace-scoped and global memories, no cloud account, no API key.",
   "author": {
     "name": "mem0-rvaim contributors"
   },
-  "homepage": "https://github.com/mem0ai/mem0",
-  "repository": "https://github.com/mem0ai/mem0",
+  "homepage": "https://github.com/rvaim/mem0-rvaim",
+  "repository": "https://github.com/rvaim/mem0-rvaim",
   "license": "Apache-2.0",
   "keywords": ["memory", "local-first", "mcp", "semantic-search", "workspace-isolation"],
   "userConfig": {},

@@ -8,4 +8,4 @@ Only the daemon process may touch Qdrant / SQLite.  Hooks and the MCP
 proxy talk to it through a loopback HTTP API protected by a random token.
 """
 
-__version__ = "0.3.0"
+__version__ = "0.3.1"
